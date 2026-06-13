@@ -12,7 +12,7 @@ const modalImage = document.getElementById('modalImage');
 const modalCaption = document.getElementById('modalCaption');
 const modalClose = document.getElementById('modalClose');
 const modalBackdrop = document.getElementById('modalBackdrop');
-const backsoundUrl = 'https://commons.wikimedia.org/wiki/Special:FilePath/Gymnopedie_No._1_(ISRC_USUAN1100787).mp3';
+const youtubeVideoId = 'UpoCD4zFASY'; // Perfect - Ed Sheeran
 
 const galleryItems = [
   { file: 'Foto/WhatsApp Image 2026-06-13 at 21.52.33(2).jpeg', caption: 'Awal yang tenang, seperti halaman yang dibuka pelan.' },
@@ -159,27 +159,51 @@ function typeLeadText() {
   tick();
 }
 
-let audioElement = null;
+let youtubePlayer = null;
 let autoplayFallbackBound = false;
 
 function stopBacksound() {
-  if (audioElement) {
-    audioElement.pause();
-    audioElement.currentTime = 0;
+  if (youtubePlayer && typeof youtubePlayer.pauseVideo === 'function') {
+    youtubePlayer.pauseVideo();
   }
-
 }
 
-async function startBacksound() {
-  if (!audioElement) {
-    audioElement = new Audio(backsoundUrl);
-    audioElement.loop = true;
-    audioElement.preload = 'auto';
-    audioElement.volume = 0.35;
-    audioElement.setAttribute('aria-hidden', 'true');
+function startBacksound() {
+  if (youtubePlayer && typeof youtubePlayer.playVideo === 'function') {
+    youtubePlayer.playVideo();
   }
+}
 
-  await audioElement.play();
+window.onYouTubeIframeAPIReady = function() {
+  youtubePlayer = new YT.Player('youtubePlayer', {
+    height: '1',
+    width: '1',
+    videoId: youtubeVideoId,
+    events: {
+      'onReady': onPlayerReady,
+      'onStateChange': onPlayerStateChange
+    },
+    playerVars: {
+      'controls': 0,
+      'modestbranding': 1,
+      'rel': 0,
+      'fs': 0,
+      'autoplay': 0,
+      'loop': 1
+    }
+  });
+};
+
+function onPlayerReady() {
+  youtubePlayer.setVolume(30);
+  startBacksound();
+  bindAutoplayFallback();
+}
+
+function onPlayerStateChange(event) {
+  if (event.data === YT.PlayerState.ENDED) {
+    youtubePlayer.playVideo();
+  }
 }
 
 function bindAutoplayFallback() {
@@ -188,9 +212,9 @@ function bindAutoplayFallback() {
   }
 
   autoplayFallbackBound = true;
-  const attemptPlay = async () => {
+  const attemptPlay = () => {
     try {
-      await startBacksound();
+      startBacksound();
       window.removeEventListener('pointerdown', attemptPlay);
       window.removeEventListener('touchstart', attemptPlay);
       window.removeEventListener('keydown', attemptPlay);
@@ -225,7 +249,3 @@ createHearts();
 setupRevealObserver();
 buildGallery();
 typeLeadText();
-startBacksound().catch(() => {
-  bindAutoplayFallback();
-});
-bindAutoplayFallback();
