@@ -12,6 +12,7 @@ const modalImage = document.getElementById('modalImage');
 const modalCaption = document.getElementById('modalCaption');
 const modalClose = document.getElementById('modalClose');
 const modalBackdrop = document.getElementById('modalBackdrop');
+const backsoundUrl = 'https://commons.wikimedia.org/wiki/Special:FilePath/Gymnopedie_No._1_(ISRC_USUAN1100787).mp3';
 
 const galleryItems = [
   { file: 'Foto/WhatsApp Image 2026-06-13 at 21.52.33(2).jpeg', caption: 'Awal yang tenang, seperti halaman yang dibuka pelan.' },
@@ -41,7 +42,7 @@ function formatCountdown(ms) {
 }
 
 function updateCountdown() {
-  const diff = countdownTarget.getTime() - new Date().getTime();
+  const diff = countdownTarget.getTime() - Date.now();
   const [days, hours, minutes, seconds] = formatCountdown(diff);
   const boxes = countdownContainer.querySelectorAll('.count-box strong');
 
@@ -50,13 +51,8 @@ function updateCountdown() {
   boxes[2].textContent = minutes;
   boxes[3].textContent = seconds;
 
-  if (diff <= 0) {
-    countdownState.textContent = 'Hari spesialmu sudah tiba';
-    countdownContainer.setAttribute('aria-label', 'Selamat ulang tahun');
-    return;
-  }
-
-  countdownState.textContent = 'Menghitung waktu terbaik untukmu';
+  countdownState.textContent = diff <= 0 ? 'Hari spesialmu sudah tiba' : 'Menghitung waktu terbaik untukmu';
+  countdownContainer.setAttribute('aria-label', diff <= 0 ? 'Selamat ulang tahun' : 'Countdown menuju ulang tahun');
 }
 
 function createHearts() {
@@ -86,134 +82,65 @@ function setupRevealObserver() {
   revealBlocks.forEach((block) => observer.observe(block));
 }
 
-function buildGallery() {
-  const spotlightItem = galleryItems[0];
-  const sideItems = galleryItems.slice(1, 3);
-  const reelItems = galleryItems.slice(3);
-
-  const createCard = (item, index, options = {}) => {
-    const figure = document.createElement('figure');
-    figure.className = options.cardClass || 'photo-card glass';
-    figure.tabIndex = 0;
-    figure.setAttribute('role', 'button');
-    figure.setAttribute('aria-label', `Buka foto ${index + 1}`);
-
-    const media = document.createElement('div');
-    media.className = options.mediaClass || 'gallery-card-media';
-
-    const image = document.createElement('img');
-    image.src = encodePath(item.file);
-    image.alt = item.caption;
-    image.loading = 'lazy';
-    media.appendChild(image);
-
-    const caption = document.createElement('figcaption');
-    caption.className = options.captionClass || 'gallery-card-copy';
-
-    if (options.label || options.title) {
-      const label = document.createElement('span');
-      label.className = 'gallery-label';
-      label.textContent = options.label || 'Pilihan';
-      caption.appendChild(label);
-    }
-
-    if (options.title) {
-      const title = document.createElement('h3');
-      title.textContent = options.title;
-      caption.appendChild(title);
-    }
-
-    const text = document.createElement('p');
-    text.textContent = options.description || item.caption;
-    caption.appendChild(text);
-
-    const open = () => {
-      modalImage.src = encodePath(item.file);
-      modalImage.alt = item.caption;
-      modalCaption.textContent = item.caption;
-      modal.classList.add('open');
-      modal.setAttribute('aria-hidden', 'false');
-    };
-
-    figure.addEventListener('click', open);
-    figure.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        open();
-      }
-    });
-
-    figure.append(media, caption);
-    return figure;
-  };
-
-  const spotlight = document.createElement('article');
-  spotlight.className = 'gallery-spotlight glass';
-  const spotlightMedia = document.createElement('button');
-  spotlightMedia.type = 'button';
-  spotlightMedia.className = 'gallery-spotlight-media';
-  spotlightMedia.setAttribute('aria-label', 'Buka foto utama');
-  const spotlightImg = document.createElement('img');
-  spotlightImg.src = encodePath(spotlightItem.file);
-  spotlightImg.alt = spotlightItem.caption;
-  spotlightImg.loading = 'lazy';
-  spotlightMedia.appendChild(spotlightImg);
-  spotlightMedia.addEventListener('click', () => {
-    modalImage.src = encodePath(spotlightItem.file);
-    modalImage.alt = spotlightItem.caption;
-    modalCaption.textContent = spotlightItem.caption;
-    modal.classList.add('open');
-    modal.setAttribute('aria-hidden', 'false');
-  });
-  const spotlightCopy = document.createElement('div');
-  spotlightCopy.className = 'gallery-spotlight-copy';
-  spotlightCopy.innerHTML = `
-    <span class="gallery-label">Foto utama</span>
-    <h3>Muthia sebagai pusat perhatian.</h3>
-    <p>Bagian paling penting saya beri ruang terbesar, supaya kesannya lebih premium dan tidak terasa penuh sesak.</p>
-  `;
-  spotlight.append(spotlightMedia, spotlightCopy);
-
-  const side = document.createElement('div');
-  side.className = 'gallery-side';
-  sideItems.forEach((item, index) => {
-    side.appendChild(createCard(item, index + 1, {
-      cardClass: index === 0 ? 'gallery-card gallery-card--compact glass' : 'gallery-card glass',
-      label: index === 0 ? 'Momen hangat' : 'Detail manis',
-      title: index === 0 ? 'Tenang, dekat, dan jelas.' : 'Satu detail yang tetap perlu ada.',
-      description: index === 0 ? 'Dipilih untuk mendukung foto utama tanpa mencuri perhatian.' : 'Cukup hadir sebagai aksen, bukan saingan.'
-    }));
-  });
-
-  const reel = document.createElement('article');
-  reel.className = 'gallery-reel glass';
-  const reelIntro = document.createElement('div');
-  reelIntro.className = 'reel-intro';
-  reelIntro.innerHTML = `
-    <span class="gallery-label">Pita kenangan</span>
-    <strong>Geser untuk melihat sisanya.</strong>
-    <p>Foto tambahan tetap ada, tapi dibuat kecil dan horizontal agar terasa seperti arsip premium, bukan spam visual.</p>
-  `;
-  const reelTrack = document.createElement('div');
-  reelTrack.className = 'reel-track';
-  reelItems.forEach((item, index) => {
-    reelTrack.appendChild(createCard(item, index + 4, {
-      cardClass: 'gallery-reel-card glass',
-      mediaClass: 'gallery-card-media',
-      captionClass: 'gallery-card-copy',
-      label: `Frame ${String(index + 4).padStart(2, '0')}`,
-      title: item.caption,
-      description: 'Klik untuk melihat ukuran penuh.'
-    }));
-  });
-  reel.append(reelIntro, reelTrack);
-
-  gallery.replaceChildren(spotlight, side, reel);
+function openModal(item) {
+  modalImage.src = encodePath(item.file);
+  modalImage.alt = item.caption;
+  modalCaption.textContent = '';
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
 }
 
 function closeModal() {
   modal.classList.remove('open');
   modal.setAttribute('aria-hidden', 'true');
+}
+
+function createGalleryCard(item, index) {
+  const figure = document.createElement('figure');
+  figure.className = 'gallery-marquee-card glass';
+  figure.tabIndex = 0;
+  figure.setAttribute('role', 'button');
+  figure.setAttribute('aria-label', `Buka foto ${index + 1}`);
+
+  const media = document.createElement('div');
+  media.className = 'gallery-marquee-media';
+
+  const image = document.createElement('img');
+  image.src = encodePath(item.file);
+  image.alt = item.caption;
+  image.loading = 'lazy';
+  media.appendChild(image);
+
+  figure.addEventListener('click', () => openModal(item));
+  figure.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      openModal(item);
+    }
+  });
+
+  figure.append(media);
+  return figure;
+}
+
+function buildGallery() {
+  const track = document.createElement('div');
+  track.className = 'gallery-marquee-track';
+
+  const setA = document.createElement('div');
+  setA.className = 'gallery-marquee-set';
+  galleryItems.forEach((item, index) => {
+    setA.appendChild(createGalleryCard(item, index));
+  });
+
+  const setB = document.createElement('div');
+  setB.className = 'gallery-marquee-set';
+  galleryItems.forEach((item, index) => {
+    setB.appendChild(createGalleryCard(item, index + galleryItems.length));
+  });
+
+  track.append(setA, setB);
+  gallery.replaceChildren(track);
 }
 
 function typeLeadText() {
@@ -231,6 +158,53 @@ function typeLeadText() {
 
   tick();
 }
+
+let audioElement = null;
+let autoplayFallbackBound = false;
+
+function stopBacksound() {
+  if (audioElement) {
+    audioElement.pause();
+    audioElement.currentTime = 0;
+  }
+
+}
+
+async function startBacksound() {
+  if (!audioElement) {
+    audioElement = new Audio(backsoundUrl);
+    audioElement.loop = true;
+    audioElement.preload = 'auto';
+    audioElement.volume = 0.35;
+    audioElement.setAttribute('aria-hidden', 'true');
+  }
+
+  await audioElement.play();
+}
+
+function bindAutoplayFallback() {
+  if (autoplayFallbackBound) {
+    return;
+  }
+
+  autoplayFallbackBound = true;
+  const attemptPlay = async () => {
+    try {
+      await startBacksound();
+      window.removeEventListener('pointerdown', attemptPlay);
+      window.removeEventListener('touchstart', attemptPlay);
+      window.removeEventListener('keydown', attemptPlay);
+    } catch {
+      // Wait for the next interaction if autoplay is blocked.
+    }
+  };
+
+  window.addEventListener('pointerdown', attemptPlay, { once: true });
+  window.addEventListener('touchstart', attemptPlay, { once: true });
+  window.addEventListener('keydown', attemptPlay, { once: true });
+}
+
+window.addEventListener('beforeunload', stopBacksound);
 
 letterToggle.addEventListener('click', () => {
   hiddenMessage.classList.toggle('show');
@@ -251,3 +225,7 @@ createHearts();
 setupRevealObserver();
 buildGallery();
 typeLeadText();
+startBacksound().catch(() => {
+  bindAutoplayFallback();
+});
+bindAutoplayFallback();
