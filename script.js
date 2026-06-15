@@ -12,7 +12,9 @@ const modalImage = document.getElementById('modalImage');
 const modalCaption = document.getElementById('modalCaption');
 const modalClose = document.getElementById('modalClose');
 const modalBackdrop = document.getElementById('modalBackdrop');
-const youtubeVideoId = 'UpoCD4zFASY'; // Perfect - Ed Sheeran
+const introModal = document.getElementById('introModal');
+const introButton = document.getElementById('introButton');
+const youtubeVideoId = 'KLeiK0whCdY'; // Perfect - Ed Sheeran (piano solo cover)
 
 const galleryItems = [
   { file: 'Foto/WhatsApp Image 2026-06-13 at 21.52.33(2).jpeg', caption: 'Awal yang tenang, seperti halaman yang dibuka pelan.' },
@@ -160,7 +162,7 @@ function typeLeadText() {
 }
 
 let youtubePlayer = null;
-let autoplayFallbackBound = false;
+let pendingIntroPlayback = false;
 
 function stopBacksound() {
   if (youtubePlayer && typeof youtubePlayer.pauseVideo === 'function') {
@@ -172,6 +174,13 @@ function startBacksound() {
   if (youtubePlayer && typeof youtubePlayer.playVideo === 'function') {
     youtubePlayer.playVideo();
   }
+}
+
+function openIntro() {
+  introModal.classList.add('is-hidden');
+  introModal.setAttribute('aria-hidden', 'true');
+  pendingIntroPlayback = true;
+  startBacksound();
 }
 
 window.onYouTubeIframeAPIReady = function() {
@@ -196,8 +205,9 @@ window.onYouTubeIframeAPIReady = function() {
 
 function onPlayerReady() {
   youtubePlayer.setVolume(30);
-  startBacksound();
-  bindAutoplayFallback();
+  if (pendingIntroPlayback) {
+    startBacksound();
+  }
 }
 
 function onPlayerStateChange(event) {
@@ -206,29 +216,9 @@ function onPlayerStateChange(event) {
   }
 }
 
-function bindAutoplayFallback() {
-  if (autoplayFallbackBound) {
-    return;
-  }
-
-  autoplayFallbackBound = true;
-  const attemptPlay = () => {
-    try {
-      startBacksound();
-      window.removeEventListener('pointerdown', attemptPlay);
-      window.removeEventListener('touchstart', attemptPlay);
-      window.removeEventListener('keydown', attemptPlay);
-    } catch {
-      // Wait for the next interaction if autoplay is blocked.
-    }
-  };
-
-  window.addEventListener('pointerdown', attemptPlay, { once: true });
-  window.addEventListener('touchstart', attemptPlay, { once: true });
-  window.addEventListener('keydown', attemptPlay, { once: true });
-}
-
 window.addEventListener('beforeunload', stopBacksound);
+
+introButton.addEventListener('click', openIntro);
 
 letterToggle.addEventListener('click', () => {
   hiddenMessage.classList.toggle('show');

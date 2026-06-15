@@ -97,6 +97,56 @@ img {
   z-index: 1;
 }
 
+.intro-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at top, rgba(255, 214, 223, 0.18), transparent 30%),
+    rgba(18, 7, 12, 0.82);
+  backdrop-filter: blur(18px);
+}
+
+.intro-card {
+  width: min(640px, 100%);
+  padding: clamp(1.4rem, 3vw, 2.2rem);
+  text-align: center;
+  animation: introRise 520ms ease;
+}
+
+.intro-card h2 {
+  margin: 0;
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  line-height: 0.98;
+}
+
+.intro-card p {
+  margin: 1rem auto 0;
+  max-width: 34rem;
+  line-height: 1.8;
+  color: var(--muted);
+}
+
+.intro-button {
+  margin-top: 1.35rem;
+  width: min(100%, 20rem);
+}
+
+.intro-note {
+  font-size: 0.95rem;
+}
+
+.intro-modal.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 260ms ease, visibility 0s linear 260ms;
+}
+
 .heart {
   position: absolute;
   width: 14px;
@@ -671,6 +721,17 @@ img {
   50% { transform: translate3d(0, 18px, 0) scale(1.04); }
 }
 
+@keyframes introRise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes rise {
   0% {
     transform: translateY(110vh) scale(0.7) rotate(45deg);
@@ -717,6 +778,10 @@ img {
     width: min(100% - 0.9rem, 1180px);
     padding-top: 0.9rem;
     padding-bottom: 8.5rem;
+  }
+
+  .intro-card {
+    border-radius: 24px;
   }
 
   .mobile-dock {
